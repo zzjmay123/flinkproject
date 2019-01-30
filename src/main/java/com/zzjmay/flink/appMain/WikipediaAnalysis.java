@@ -34,6 +34,7 @@ public class WikipediaAnalysis {
             }
         });
 
+        //进行数据处理
         DataStream<Tuple2<String,Long>> result = keyedEdits.timeWindow(Time.seconds(5))
                 .fold(new Tuple2<String,Long>("", 0L), new FoldFunction<WikipediaEditEvent, Tuple2<String,Long>>() {
 
@@ -44,6 +45,7 @@ public class WikipediaAnalysis {
                     }
                 });
 
+        //sink操作
         result.print();
         env.execute("测试FlinkDemo");
 
