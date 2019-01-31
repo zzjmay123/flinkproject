@@ -47,7 +47,7 @@ public class WikipediaAnalysis {
 
         //sink操作
         result.print();
-        env.execute("测试FlinkDemo");
+        env.execute("测试FlinkDemo2");
 
 
     }
