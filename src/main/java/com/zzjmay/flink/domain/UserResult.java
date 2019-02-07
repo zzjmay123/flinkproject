@@ -17,6 +17,11 @@ public class UserResult implements Serializable {
     public UserResult() {
     }
 
+    public UserResult(String name, int sumNum) {
+        this.name = name;
+        this.sumNum = sumNum;
+    }
+
     public String getName() {
         return name;
     }
@@ -31,5 +36,13 @@ public class UserResult implements Serializable {
 
     public void setSumNum(int sumNum) {
         this.sumNum = sumNum;
+    }
+
+    @Override
+    public String toString() {
+        return "UserResult{" +
+                "name='" + name + '\'' +
+                ", sumNum=" + sumNum +
+                '}';
     }
 }
