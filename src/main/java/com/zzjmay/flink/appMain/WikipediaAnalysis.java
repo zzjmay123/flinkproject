@@ -35,7 +35,8 @@ public class WikipediaAnalysis {
         });
 
         //进行数据处理
-        DataStream<Tuple2<String,Long>> result = keyedEdits.timeWindow(Time.seconds(5))
+        DataStream<Tuple2<String,Long>> result = keyedEdits.
+                timeWindow(Time.seconds(5))
                 .fold(new Tuple2<String,Long>("", 0L), new FoldFunction<WikipediaEditEvent, Tuple2<String,Long>>() {
 
                     public Tuple2<String, Long> fold(Tuple2<String, Long> acc, WikipediaEditEvent event) {
