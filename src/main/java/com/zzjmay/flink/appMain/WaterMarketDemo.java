@@ -26,7 +26,7 @@ public class WaterMarketDemo {
 
     public static void main(String[] args) throws Exception {
         //定义socket端口
-        int port = 8090;
+        int port = 9999;
 
         //1. 获取运行环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -34,9 +34,9 @@ public class WaterMarketDemo {
         //2.设置使用的事件事件，默认使用的是处理时间
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         //3.设置并行度，默认并行度是当前CPU的核
-        env.setParallelism(1);
+        env.setParallelism(2);
         //4.模拟输入数据源
-        DataStream<String> text = env.socketTextStream("127.0.0.1",8090);
+        DataStream<String> text = env.socketTextStream("127.0.0.1",port);
         //5.数据处理分割
         DataStream<Tuple2<String,Long>> inputMap = text.map(new MapFunction<String, Tuple2<String, Long>>() {
             @Override
@@ -50,7 +50,7 @@ public class WaterMarketDemo {
         DataStream<Tuple2<String,Long>> waterMarkStream = inputMap.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Tuple2<String, Long>>() {
 
             Long currentMaxTimestamp = 0L;
-            final Long maxOutOfOrderness = 10000L;// 最大允许的乱序时间是10s
+            final Long maxOutOfOrderness = 3000L;// 最大允许的乱序时间是3s
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -77,7 +77,7 @@ public class WaterMarketDemo {
                 //设置最大当前时间
                 currentMaxTimestamp = Math.max(timestamp,currentMaxTimestamp);
                 long id = Thread.currentThread().getId();
-                System.out.println("作者：zzjmay 键值 :"+element.f0+",事件事件:[ "+sdf.format(element.f1)+" ],currentMaxTimestamp:[ "+
+                System.out.println("作者：zzjmay 键值 :"+element.f0+",线程ID:【"+id+"】,事件事件:[ "+sdf.format(element.f1)+" ],currentMaxTimestamp:[ "+
                         sdf.format(currentMaxTimestamp)+" ],水印时间:[ "+sdf.format(getCurrentWatermark().getTimestamp())+" ]");
 
 
@@ -87,7 +87,8 @@ public class WaterMarketDemo {
 
 
         DataStream<String> window = waterMarkStream.keyBy(0)
-                .window(TumblingEventTimeWindows.of(Time.seconds(3)))//按照消息的EventTime分配窗口，和调用TimeWindow效果一样
+                .window(TumblingEventTimeWindows.of(Time.seconds(5)))//按照消息的EventTime分配窗口，和调用TimeWindow效果一样
+//                .allowedLateness(Time.seconds(2))//设置允许延迟的2s的数据再次触发策略
                 .apply(new WindowFunction<Tuple2<String, Long>, String, Tuple, TimeWindow>() {
                     @Override
                     public void apply(Tuple tuple, TimeWindow window, Iterable<Tuple2<String, Long>> input, Collector<String> out) throws Exception {
